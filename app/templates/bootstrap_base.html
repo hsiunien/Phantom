@@ -1,0 +1,36 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}{{super()}}-Phantom{% endblock%}
+{% block html_attribs %} lang="zh-CN"{% endblock%}
+{% block head %}
+<link rel="shortcut icon" href="{{url_for('static',filename='global/favicon.ico')}}">
+{{super()}}{% endblock%}
+{% block navbar %}
+<div class="navbar navbar-inverse" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toogle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toogle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Phantom</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="/">首页</a></li>
+                <li><a href="#">文件管理</a></li>
+                <li><a href="{{url_for('auth.profile')}}">profile</a></li>
+
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {% if not current_user.is_authenticated %}
+                <li><a href="{{url_for('auth.login')}}">Login</a></li>
+                {% else %}
+                <li><a href="{{url_for('auth.logout')}}">LogOut</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock%}

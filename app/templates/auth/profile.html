@@ -1,0 +1,6 @@
+{% extends "bootstrap_base.html" %}
+{% block title %}个人信息{{super()}}{% endblock %}
+{% block content %}
+Name:
+{{ current_user.username}}
+{% endblock %}

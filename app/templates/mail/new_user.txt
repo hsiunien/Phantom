@@ -1,0 +1,1 @@
+i'm the main text user name is:{{user.username}}

@@ -1,0 +1,20 @@
+{% extends "bootstrap_base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}auth登录{{super()}}{% endblock %}
+{% block content %}
+<h1>
+    Hello,{{current_user.username}}
+</h1>
+<div class="container">
+    It looks your haven't confirm your email({{current_user.email}}),Need another confirmation email?
+    <a href="{{url_for('auth.confirmed')}}">Click here</a>
+
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-warning alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>
+        <Strong>Oh snap!</Strong> {{message}}
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
