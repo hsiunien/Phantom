@@ -1,9 +1,9 @@
 from flask import render_template, session, request, make_response, redirect, abort, url_for
+from flask_login import login_required
+
+from app.decorator import admin_required, permission_required
+from app.models import Permission
 from . import main
-from .forms import NameForm
-from ..models import User
-from .. import db
-from ..email import send_email
 
 
 @main.route('/')
@@ -24,6 +24,19 @@ def req():
 @main.route('/redirect')
 def rd():
     return redirect('http://www.baidu.com')
+
+
+@main.route('/admin')
+@login_required
+@admin_required
+def for_admins_only():
+    return "For admin only"
+
+
+@main.route('/moderate')
+@permission_required(Permission.MODERATE_COMMENTS)
+def for_moderators():
+    return "FOr moderator"
 
 
 @main.route('/user/<id>')

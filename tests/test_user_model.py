@@ -1,5 +1,5 @@
 import unittest
-from app.models import User
+from app.models import User, Permission
 
 
 class UserModelTestCase(unittest.TestCase):
@@ -21,3 +21,7 @@ class UserModelTestCase(unittest.TestCase):
         u = User(password='cat')
         u2 = User(password='cat')
         self.assertNotEqual(u.password_hash, u2.password_hash)
+
+    def test_roles_and_permission(self):
+        u = User(email='zens53@163.com', password='www')
+        self.assertTrue(u.can(Permission.ADMINISTER))
