@@ -1,0 +1,16 @@
+{% extends "bootstrap_base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "message.html" as message %}
+{% block title %}编辑个人信息{{super()}}{% endblock %}
+{% block content %}
+<div class="container">
+    {{message.show()}}
+    {{ wtf.quick_form(form)}}
+    {% if edit_success %}
+    <script type="text/javascript">
+        setTimeout(function(){window.top.location.href='{{url_for('.user',id=user.id)}}';},1000)
+
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

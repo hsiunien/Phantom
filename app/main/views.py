@@ -1,9 +1,11 @@
-from flask import render_template, session, request, make_response, redirect, abort, url_for
-from flask_login import login_required
+from flask import render_template, session, request, make_response, flash, abort, url_for
+from flask_login import login_required, current_user
 
 from app.decorator import admin_required, permission_required
-from app.models import Permission
+from app.main.forms import EditProfileForm, EditProfileAdminForm
+from app.models import Permission, User, Role
 from . import main
+from .. import db
 
 
 @main.route('/')
@@ -21,9 +23,59 @@ def req():
     return response
 
 
-@main.route('/redirect')
-def rd():
-    return redirect('http://www.baidu.com')
+@main.route('/user/<id>')
+@login_required
+def user(id):
+    user = User.query.filter_by(id=id).first()
+    if user is None:
+        abort(404)
+    return render_template("user/user.html", user=user)
+
+
+@main.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = EditProfileForm()
+    edit_success = False
+    if form.validate_on_submit():
+        current_user.username = form.name.data
+        current_user.location = form.location.data
+        current_user.about_me = form.about_me.data
+        db.session.add(current_user)
+        db.session.commit()
+        flash("Your profile has benn updated.", "success")
+        edit_success = True
+    form.name.data = current_user.username
+    form.location.data = current_user.location
+    form.about_me.data = current_user.about_me
+    return render_template('user/edit_profile.html', form=form, user=current_user, edit_success=edit_success)
+
+
+@main.route('/edit_profile/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_profile_admin(id):
+    user = User.query.get_or_404(id)
+    form = EditProfileAdminForm(user=user)
+    edit_success = False
+    if form.validate_on_submit():
+        user.confirmed = form.confirmed.data
+        user.cemail = form.email.data
+        user.role = Role.query.get(form.role.data)
+        user.username = form.username.data
+        user.location = form.location.data
+        user.about_me = form.about_me.data
+        db.session.add(user)
+        db.session.commit()
+        flash("User's profile has benn updated.", "success")
+        edit_success = True
+    form.username.data = user.username
+    form.location.data = user.location
+    form.about_me.data = user.about_me
+    form.role.data = user.role_id
+    form.email.data = user.cemail
+    form.confirmed.data = user.confirmed
+    return render_template('user/edit_profile.html', form=form, edit_success=edit_success, user=user)
 
 
 @main.route('/admin')

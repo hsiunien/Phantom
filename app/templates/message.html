@@ -1,0 +1,11 @@
+{% macro show()%}
+{% for category,message in get_flashed_messages(with_categories=True) %}
+{% if loop.index<=1 %}
+<div class="alert alert-{%if category=='success' %}info  {% else %}warning{% endif %} alert-dismissible"
+     role="alert">
+    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>
+    {{message}}
+</div>
+{%endif%}
+{% endfor %}
+{% endmacro %}

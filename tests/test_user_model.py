@@ -1,5 +1,5 @@
 import unittest
-from app.models import User, Permission
+from app.models import User, Permission, AnonymousUser
 
 
 class UserModelTestCase(unittest.TestCase):
@@ -25,3 +25,7 @@ class UserModelTestCase(unittest.TestCase):
     def test_roles_and_permission(self):
         u = User(email='zens53@163.com', password='www')
         self.assertTrue(u.can(Permission.ADMINISTER))
+
+    def test_anonymous_user(self):
+        u = AnonymousUser()
+        self.assertFalse(u.can(Permission.FOLLOW))
