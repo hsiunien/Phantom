@@ -1,18 +1,23 @@
-from flask import render_template, session, request, make_response, flash, abort, url_for
+from flask import render_template, session, request, make_response, flash, abort, url_for, redirect
 from flask_login import login_required, current_user
 
 from app.decorator import admin_required, permission_required
-from app.main.forms import EditProfileForm, EditProfileAdminForm
-from app.models import Permission, User, Role
+from app.main.forms import EditProfileForm, EditProfileAdminForm, PostForm
+from app.models import Permission, User, Role, Post
 from . import main
 from .. import db
 
 
-@main.route('/')
+@main.route('/', methods=['POST', 'GET'])
 def home():
-    known = session.get('known', True)
-    session.pop('known', None)
-    return render_template("index.html", name=session.get('name'), known=known)
+    form = PostForm()
+    if current_user.can(Permission.POST_ARTICLES) and form.validate_on_submit():
+        post = Post(body=form.body.data, author=current_user._get_current_object())
+        db.session.add(post)
+        db.session.commit()
+        return redirect(url_for('.home'))
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template("index.html", form=form, posts=posts)
 
 
 @main.route('/make_request')
@@ -24,12 +29,12 @@ def req():
 
 
 @main.route('/user/<id>')
-@login_required
 def user(id):
     user = User.query.filter_by(id=id).first()
     if user is None:
         abort(404)
-    return render_template("user/user.html", user=user)
+    posts = user.posts.order_by(Post.timestamp.desc()).all()
+    return render_template("user/user.html", user=user, posts=posts)
 
 
 @main.route('/edit_profile', methods=['GET', 'POST'])

@@ -12,7 +12,11 @@ class NameForm(FlaskForm):
 
 
 class EditProfileForm(FlaskForm):
-    name = StringField('Name:', validators=[Length(0, 60)])
+    name = StringField('Name:', validators=[
+        Length(1, 60),
+        Regexp('^[A-Za-z\u4e00-\u9fa5][A-Za-z0-9_.\u4e00-\u9fa5]*$', 0,
+               'UserName must have only letters,numbers,dots or underscores')
+    ])
     location = StringField('Location:', validators=[Length(0, 64)])
     about_me = TextAreaField('About Me:')
     submit = SubmitField('Submit')
@@ -52,3 +56,7 @@ class EditProfileAdminForm(FlaskForm):
                 User.query.filter_by(username=field.data).first():
             raise ValidationError("User name has already in use")
 
+
+class PostForm(FlaskForm):
+    body = TextAreaField("What's on your mind?", validators=[DataRequired()])
+    submit = SubmitField("Submit")

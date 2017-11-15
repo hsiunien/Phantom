@@ -18,14 +18,16 @@ def login():
             login_user(user, form.remember_me.data)
             if request.args.get('activate') == '1':
                 token = request.args.get('token')
+                email = request.args.get('email')
                 # print("token:" + token)
-                return redirect(url_for('.confirm', token=token))
+                return redirect(url_for('.confirm', token=token, email=email))
             elif not user.confirmed:
                 return redirect(url_for('.unconfirmed'))
             else:
                 return redirect(request.args.get('next') or url_for('main.home'))
         else:
             flash('invalid username or password')
+    form.email.data = request.args.get('email')
     return render_template('auth/login.html', form=form)
 
 
@@ -45,8 +47,9 @@ def register():
                     password=form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('We sent your a confirm email,please confirm first')
+        flash('We sent you a confirm email,please confirm first!', 'success')
         send_email(user.email, 'New User', 'mail/new_user', user=user)
+        login_user(user)
         return redirect(url_for('.login'))
     return render_template('auth/register.html', form=form)
 
@@ -57,15 +60,15 @@ def profile():
     return render_template('auth/profile.html')
 
 
-@auth.route('/confirm/<token>')
-def confirm(token):
+@auth.route('/confirm/<token>/<email>')
+def confirm(token, email):
     if not current_user.is_authenticated:
-        return redirect(url_for('.login', token=token, activate=1))
+        return redirect(url_for('.login', token=token, email=email, activate=1))
     if current_user.confirmed:
         return redirect(url_for('main.home'))
     result, msg = current_user.confirm(token)
     if result:
-        flash('You have confirmed your account,Thanks')
+        flash('You have confirmed your account, Thanks', 'success')
     else:
         flash(msg)
         logout_user()

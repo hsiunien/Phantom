@@ -2,26 +2,29 @@
 {% block title %}个人信息{{super()}}{% endblock %}
 {% block content %}
 <div class="container">
-    <img src="{{user.getAvatar(size=256)}}" class="col-md-3 img-circle profile-thumbnail"/>
-    <h1>昵称:{{ user.username}}</h1>
-    <p>
-        {%if user.location %}From <a href="http://maps.google.com/?q={{user.location }}"
-                                     target="_blank">{{user.location}}</a> {%endif%}
-        {% if current_user.is_administrator() %}
-    </p>
-    <p>
-        <a href="mailto:{{user.email}}">{{user.email}}</a>
-    </p>
-    {% endif %}
-    {% if user.about_me %}
-    <p>About Me:{{user.about_me}}</p>
-    {% endif %}
-    <p>注册时间：{{moment(user.member_since).format('L')}},<br/>最后一次登录时间：{{moment(user.last_seen).fromNow() }}. </p>
-    {%if user==current_user %}
-    <a href="{{url_for('.edit_profile')}}" class="btn btn-default">Edit profile</a>
-    {% endif %}
-    {%if current_user.is_administrator() %}
-    <a href="{{url_for('.edit_profile_admin',id=user.id)}}" class="btn btn-danger">Edit Profile[Admin]</a>
-    {% endif %}
-    {% endblock %}
+    <div class="row">
+        <img src="{{user.getAvatar(size=256)}}" class="col-md-3 img-circle profile-thumbnail"/>
+        <h1>昵称:{{ user.username}}</h1>
+        <p>
+            {%if user.location %}From <a href="http://maps.google.com/?q={{user.location }}"
+                                         target="_blank">{{user.location}}</a> {%endif%}
+            {% if current_user.is_administrator() %}
+        </p>
+        <p>
+            <a href="mailto:{{user.email}}">{{user.email}}</a>
+        </p>
+        {% endif %}
+        {% if user.about_me %}
+        <p>About Me:{{user.about_me}}</p>
+        {% endif %}
+        <p>注册时间：{{moment(user.member_since).format('L')}},<br/>最后一次登录时间：{{moment(user.last_seen).fromNow() }}. </p>
+        {%if user==current_user %}
+        <a href="{{url_for('.edit_profile')}}" class="btn btn-default">Edit profile</a>
+        {% endif %}
+        {%if current_user.is_administrator() %}
+        <a href="{{url_for('.edit_profile_admin',id=user.id)}}" class="btn btn-danger">Edit Profile[Admin]</a>
+        {% endif %}
+    </div>
+    {% include('_posts.html')%}
 </div>
+{% endblock %}

@@ -1,3 +1,26 @@
+* {
+ -webkit-font-smoothing: antialiased;
+}
 .thumb_small{
      margin-top:8px
+}
+ul.posts{
+    padding:0px;
+    font-family:Gibson,Helvetica Neue,HelveticaNeue,Helvetica,Arial,sans-serif;
+}
+ul.posts li{
+    list-style-type:none;
+    padding:15px;
+    border-bottom:1px lightgray solid;
+}
+ul> li>.post-date{
+    float:right;
+}
+
+ul> li >.post-thumbnail{
+    float:left;
+    padding:8px
+}
+.post-thumbnail > img{
+    margin:10px;
 }

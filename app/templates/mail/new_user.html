@@ -6,7 +6,7 @@
 </head>
 <body>
 welcome this is the text user name is {{user.username}}, at first you must click this link to activate your account:
-{%set url=url_for('auth.confirm',token=user.generate_confirmation_token(),_external=True) %}
+{%set url=url_for('auth.confirm',token=user.generate_confirmation_token(),email=user.email,_external=True) %}
 <a href="{{url|safe}}">{{url|safe}}</a>, Thanks for your cooperation!!! If you couldn't open the link,please copy it
 into your browser address tab.
 </body>
