@@ -1,12 +1,13 @@
+import hashlib
 from datetime import datetime
 
-import hashlib
-from . import db
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin, AnonymousUserMixin
-from . import login_manager
 from flask import current_app, request
+from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadTimeSignature
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from . import db
+from . import login_manager
 
 
 class Role(db.Model):
@@ -71,7 +72,7 @@ class User(UserMixin, db.Model):
             url = "https://secure.gravatar.com/avatar"
         else:
             url = 'http://www.gravatar.com/avatar'
-        hash = self.avatar
+        hash = self.avatar or self.cemail
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, default=default, rating=rating, size=size)
 
@@ -84,10 +85,20 @@ class User(UserMixin, db.Model):
 
     @property
     def cemail(self):
+        """
+        返回同email
+        @return:
+        @rtype:
+        """
         return self.email
 
     @cemail.setter
     def cemail(self, email):
+        """
+        修改email调用此方法可以同步修改email的hash
+        @param email:  要修改的email
+        @type email:
+        """
         self.email = email
         self.avatar = hashlib.md5(self.email.encode('utf-8')).hexdigest()
 
@@ -149,5 +160,4 @@ class Permission:
 
 @login_manager.user_loader
 def load_user(user_id):
-    print("log:queryUser id=%s " % user_id)
     return User.query.get(int(user_id))
