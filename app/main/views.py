@@ -1,4 +1,4 @@
-from flask import render_template, session, request, make_response, flash, abort, url_for, redirect
+from flask import render_template, request, make_response, flash, abort, url_for, redirect, current_app
 from flask_login import login_required, current_user
 
 from app.decorator import admin_required, permission_required
@@ -16,8 +16,12 @@ def home():
         db.session.add(post)
         db.session.commit()
         return redirect(url_for('.home'))
-    posts = Post.query.order_by(Post.timestamp.desc()).all()
-    return render_template("index.html", form=form, posts=posts)
+    page = request.args.get('page', 1, type=int)
+    pagination = Post.query.order_by(Post.timestamp.desc()) \
+        .paginate(page, per_page=current_app.config['POSTS_PER_PAGE'], error_out=False)
+
+    posts = pagination.items
+    return render_template("index.html", form=form, posts=posts, pagination=pagination)
 
 
 @main.route('/make_request')

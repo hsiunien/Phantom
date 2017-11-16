@@ -1,9 +1,12 @@
 {% extends "bootstrap/base.html" %}
-{% block title %}{{super()}}-Zheer{% endblock%}
+{% block title %}{{super()}}-Zheer.me{% endblock%}
 {% block html_attribs %} lang="zh-CN"{% endblock%}
 {% block head %}
 <link rel="shortcut icon" href="{{url_for('static',filename='global/favicon.ico')}}">
-{{super()}}{% endblock%}
+{{super()}}
+<meta content="yes" name="apple-mobile-web-app-capable">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+{% endblock%}
 {%- block styles %}
 {{super()}}
 <link href="{{url_for('static',filename='style.css')}}" rel="stylesheet">
