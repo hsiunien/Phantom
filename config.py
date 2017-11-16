@@ -4,9 +4,12 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
+    APP_NAME = 'Zheer.me'
     SECRET_KEY = os.environ.get('SECRET_KEY')
-    MAIL_SUBJECT_PREFIX = '[PHANTOM]'
-    MAIL_SENDER = 'Phantom Admin <noreply@xiunian.wang>'
+    MAIL_SUBJECT_PREFIX = '[这儿]'
+    MAIL_SENDER = '{app_name} <{mail_username}>' \
+        .format(app_name=APP_NAME,
+                mail_username=os.environ.get('MAIL_USERNAME'))
     ADMIN = os.environ.get('ADMIN')
 
     @staticmethod
@@ -16,8 +19,8 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    MAIL_SERVER = 'smtp.ym.163.com'
-    MAIL_PORT = 25
+    MAIL_SERVER = os.environ.get('MAIL_SERVER')
+    MAIL_PORT = 80
     MAIL_USE_TLS = False
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')

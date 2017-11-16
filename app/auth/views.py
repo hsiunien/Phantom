@@ -1,11 +1,12 @@
 from flask import render_template, redirect, request, url_for, flash, current_app
-from .. import db
-from .forms import LoginForm, RegistrationForm, FindPasswordForm, ResetPasswordForm
-from . import auth
-from ..models import User
 from flask_login import login_user, logout_user, login_required, current_user
-from ..email import send_email
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadTimeSignature
+
+from . import auth
+from .forms import LoginForm, RegistrationForm, FindPasswordForm, ResetPasswordForm
+from .. import db
+from ..email import send_email
+from ..models import User
 
 
 @auth.route('/login', methods=['POST', 'GET'])
@@ -81,7 +82,7 @@ def confirmed():
     if current_user.confirmed:
         return redirect(url_for('main.home'))
     send_email(current_user.email, 'Re Confirm Your Account', 'mail/new_user', user=current_user)
-    flash("we have sent your an email,please check your email first!")
+    flash("we have sent your an email,please check your email first!", "success")
     return render_template('auth/unconfirm.html')
 
 
