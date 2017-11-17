@@ -13,7 +13,7 @@ ul.posts li{
     padding:15px;
     border-bottom:1px lightgray solid;
 }
-ul> li>.post-date{
+ul> li> .post-date {
     float:right;
 }
 

@@ -4,7 +4,14 @@
 {% block title %}这儿{{super()}}{% endblock %}
 {% block head %}{{ super() }}
 {% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}
+
 {% block content %}
+
 <!--<div class="page-header">-->
 <!--<h1> Hello,-->
 <!--{%if current_user.is_authenticated %}-->

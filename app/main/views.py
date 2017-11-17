@@ -24,12 +24,41 @@ def home():
     return render_template("index.html", form=form, posts=posts, pagination=pagination)
 
 
-@main.route('/make_request')
-def req():
-    cookie = request.headers.get('Cookie')
-    response = make_response('<h1> current Cookie is %s<h1>' % cookie)
-    response.set_cookie('sessionId', 'wxn')
-    return response
+@main.route('/post/<int:id>')
+def post(id):
+    post = Post.query.get_or_404(id)
+    return render_template('post.html', posts=[post])
+
+
+@main.route('/edit_post/<int:id>', methods=['GET', 'POST'])
+def edit_post(id):
+    post = Post.query.get_or_404(id)
+    form = PostForm()
+    if current_user != post.author and \
+            not current_user.can(Permission.MODERATE_COMMENTS):
+        abort(403)
+
+    if form.validate_on_submit():
+        post.body = form.body.data
+        db.session.add(post)
+        db.session.commit()
+        flash("The post has ben updated.", "success")
+        return redirect(url_for('.post', id=post.id))
+
+    form.body.data = post.body
+    return render_template('edit_post.html', post=post, form=form)
+
+
+@main.route('/delete_post/<int:id>', methods=['GET', 'POST'])
+def delete_post(id):
+    post = Post.query.get_or_404(id)
+    if current_user != post.author and \
+            not current_user.can(Permission.MODERATE_COMMENTS):
+        abort(403)
+    db.session.delete(post)
+    db.session.commit()
+    flash("The post has been deleted.", "success")
+    return redirect(url_for('.home'))
 
 
 @main.route('/user/<id>')

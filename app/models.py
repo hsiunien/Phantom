@@ -1,9 +1,11 @@
 import hashlib
 from datetime import datetime
 
+import bleach
 from flask import current_app, request
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadTimeSignature
+from markdown import markdown
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db
@@ -164,6 +166,7 @@ class Post(db.Model):
     __tablename__ = 'posts'
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
@@ -179,6 +182,15 @@ class Post(db.Model):
                      , author=u)
             db.session.add(p)
         db.session.commit()
+
+    @staticmethod
+    def on_change_body(target, value, old_value, initiator):
+        allowed_tags = ['a', 'abbr', 'b', 'code', 'i', 'li', 'ul', 'h2', 'h1', 'h3', 'p', 'strong', 'pre']
+        target.body_html = bleach.clean(markdown(value, output_format='html'),
+                                        tags=allowed_tags, strip=True)
+
+
+db.event.listen(Post.body, 'set', Post.on_change_body)
 
 
 class AnonymousUser(AnonymousUserMixin):
