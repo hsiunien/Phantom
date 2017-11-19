@@ -1,0 +1,44 @@
+<div class="row">
+    <img src="{{user.getAvatar(size=256)}}" class="col-md-3 img-circle profile-thumbnail"/>
+    <h1>昵称:{{ user.username}}</h1>
+    <p>
+        {%if user.location %}From <a href="http://maps.google.com/?q={{user.location }}"
+                                     target="_blank">{{user.location}}</a> {%endif%}
+        {% if current_user.is_administrator() %}
+    </p>
+    <p>
+        <a href="mailto:{{user.email}}">{{user.email}}</a>
+    </p>
+    {% endif %}
+    {% if user.about_me %}
+    <p>About Me:{{user.about_me}}</p>
+    {% endif %}
+    <p>TA在{{moment(user.member_since).format('L')}}来到这儿<br/>最后一次登录时间：{{moment(user.last_seen).fromNow()
+        }}. </p>
+    <p class="followers_info">
+
+        {% if user != current_user and current_user.can(Permission.FOLLOW)%}
+        {% if current_user.is_following(user) %}
+        <a href="{{url_for('.unfollow',id=user.id)}}" class="btn btn-info">已关注</a>
+        {% else %}
+        <a href="{{url_for('.follow',id=user.id)}}" class="btn btn-info">关注Ta</a>
+        {% endif %}
+        {% endif %}
+        粉丝:<a href="{{url_for('.followers',id=user.id)}}"> <span
+            class="badge">{{user.followers.count()-1}} </span></a>
+        关注:<a href="{{url_for('.followed',id=user.id)}}"><span class="badge">
+        {{user.followed.count()-1}}</span></a>
+        Posts:<a href="{{url_for('.user',id=user.id)}}"><span class="badge">{{total or user.posts.count()}}</span></a>
+        {% if current_user.is_authenticated and user != current_user and user.is_following(current_user) %}
+        | <span class="label label-default">已关注你</span>
+        {% endif %}
+
+    </p>
+
+    {%if user==current_user %}
+    <a href="{{url_for('.edit_profile')}}" class="btn btn-default">Edit profile</a>
+    {% endif %}
+    {%if current_user.is_administrator() %}
+    <a href="{{url_for('.edit_profile_admin',id=user.id)}}" class="btn btn-danger">Edit Profile[Admin]</a>
+    {% endif %}
+</div>

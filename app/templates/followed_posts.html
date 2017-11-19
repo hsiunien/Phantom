@@ -1,0 +1,22 @@
+{% extends "bootstrap_base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "message.html" as message %}
+{% block title %}这儿{{super()}}{% endblock %}
+{% block head %}{{ super() }}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    {{message.show()}}
+    {% include '_posts.html' %}
+    {% import '_posts.html' as posts%}
+    {{posts.pagination_widget(pagination,endpoint)}}
+</div>
+
+{% endblock %}

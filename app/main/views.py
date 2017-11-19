@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 
 from app.decorator import admin_required, permission_required
 from app.main.forms import EditProfileForm, EditProfileAdminForm, PostForm
-from app.models import Permission, User, Role, Post
+from app.models import Permission, User, Role, Post, Follow
 from . import main
 from .. import db
 
@@ -66,8 +66,12 @@ def user(id):
     user = User.query.filter_by(id=id).first()
     if user is None:
         abort(404)
-    posts = user.posts.order_by(Post.timestamp.desc()).all()
-    return render_template("user/user.html", user=user, posts=posts)
+    page = request.args.get('page', 1, type=int)
+    pagination = user.posts.order_by(Post.timestamp.desc()) \
+        .paginate(page, per_page=current_app.config['POSTS_PER_PAGE'], error_out=False)
+    total = pagination.total
+    posts = pagination.items
+    return render_template("user/user.html", user=user, posts=posts, pagination=pagination, total=total)
 
 
 @main.route('/edit_profile', methods=['GET', 'POST'])
@@ -116,17 +120,69 @@ def edit_profile_admin(id):
     return render_template('user/edit_profile.html', form=form, edit_success=edit_success, user=user)
 
 
-@main.route('/admin')
-@login_required
-@admin_required
-def for_admins_only():
-    return "For admin only"
-
-
 @main.route('/moderate')
 @permission_required(Permission.MODERATE_COMMENTS)
 def for_moderators():
     return "FOr moderator"
+
+
+@main.route('/follow/<int:id>')
+@permission_required(Permission.FOLLOW)
+@login_required
+def follow(id):
+    user = User.query.get(id)
+    if user is not None:
+        current_user.follow(user)
+        flash("您已关注%s." % user.username, "success")
+        return redirect(url_for('.user', id=id))
+
+
+@main.route('/unfollow/<int:id>')
+@login_required
+@permission_required(Permission.FOLLOW)
+def unfollow(id):
+    user = User.query.get(id)
+    if user is not None:
+        flash("您已取消关注%s." % user.username, "success")
+        current_user.unfollow(user)
+        return redirect(url_for('.user', id=id))
+
+
+@main.route('/followers/<int:id>')
+def followers(id):
+    user = User.query.get_or_404(id)
+    page = request.args.get('page', 1, type=int)
+    pagination = user.followers.order_by(Follow.timestamp.desc()) \
+        .paginate(page, per_page=current_app.config['POSTS_PER_PAGE'], error_out=False)
+
+    follows = [{'user': item.follower, 'timestamp': item.timestamp} for item in pagination.items]  # 蜜汁写法
+
+    return render_template('user/followers.html', user=user, title="跟随者", endpoint='.followers', pagination=pagination,
+                           follows=follows)
+
+
+@main.route('/followed_post')
+@login_required
+def followed_posts():
+    user = current_user
+    page = request.args.get('page', 1, type=int)
+    pagination = user.followed_posts.order_by(Post.timestamp.desc()) \
+        .paginate(page, per_page=current_app.config['POSTS_PER_PAGE'], error_out=False)
+    posts = pagination.items
+    return render_template('followed_posts.html', endpoint='.followed_posts', user=user, pagination=pagination,
+                           posts=posts)
+
+
+@main.route('/followed/<int:id>')
+def followed(id):
+    user = User.query.get_or_404(id)
+    page = request.args.get('page', 1, type=int)
+    pagination = user.followed.order_by(Follow.timestamp.desc()) \
+        .paginate(page, per_page=current_app.config['POSTS_PER_PAGE'], error_out=False)
+
+    follows = [{'user': item.followed, 'timestamp': item.timestamp} for item in pagination.items]  # 蜜汁写法
+    return render_template('user/followers.html', user=user, title="关注", endpoint='.followers', pagination=pagination,
+                           follows=follows)
 
 
 @main.route('/user/<id>')

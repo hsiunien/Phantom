@@ -1,0 +1,10 @@
+{% extends "bootstrap_base.html" %}
+{% block title %}{{title}}{{super()}}{% endblock %}
+{% import 'message.html' as msg %}
+{% block content %}
+<div class="container">
+    {{ msg.show() }}
+    {% include('user/_user_info.html') %}
+    {% include('user/_users.html') %}
+</div>
+{% endblock %}

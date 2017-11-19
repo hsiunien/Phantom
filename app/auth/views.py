@@ -28,7 +28,7 @@ def login():
                 return redirect(request.args.get('next') or url_for('main.home'))
         else:
             flash('invalid username or password')
-    form.email.data = request.args.get('email')
+    form.email.data = request.args.get('email') or form.email.data
     return render_template('auth/login.html', form=form)
 
 
