@@ -1,5 +1,6 @@
 {% extends "bootstrap_base.html" %}
 {% block title %}{{posts[0].author.username}}在这儿{{super()}}{% endblock %}
+{% import "bootstrap/wtf.html" as wtf %}
 {% import 'message.html' as msg %}
 {% block content %}
 <div class="container">
@@ -9,5 +10,14 @@
     <a href="{{url_for('.edit_post',id=posts[0].id)}}" class="btn btn-default" role="button">Edit</a>
     <a href="{{url_for('.delete_post',id=posts[0].id)}}" class="btn btn-warning" role="button">delete</a>
     {% endif %}
+    <div>
+        {% if current_user.can(Permission.COMMENT) %}
+        {{wtf.quick_form(form)}}
+        {% endif %}
+    </div>
+    {% include '_comments.html' %}
+    {% import '_posts.html' as pg %}
+    {{pg.pagination_widget(pagination,'.post',id=posts[0].id)}}
+
 </div>
 {% endblock %}

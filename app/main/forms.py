@@ -61,3 +61,8 @@ class EditProfileAdminForm(FlaskForm):
 class PostForm(FlaskForm):
     body = PageDownField("What's on your mind?", validators=[DataRequired()])
     submit = SubmitField("Submit")
+
+
+class CommentForm(FlaskForm):
+    body = PageDownField("请遵守当地的法规法律", validators=[DataRequired()])
+    submit = SubmitField("评论")

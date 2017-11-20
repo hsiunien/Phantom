@@ -35,16 +35,18 @@
                 <li><a href="{{url_for('main.followed_posts')}}">My Follows</a></li>
 
             </ul>
+            {% if not hide_login %}
             <ul class="nav navbar-nav navbar-right">
                 {% if not current_user.is_authenticated %}
-                <li><a href="{{url_for('auth.login')}}">Login</a></li>
+                <li><a href="{{url_for('auth.login',next=request.path ) }}">Login</a></li>
                 {% else %}
-                <li><a href="{{url_for('main.user',id=current_user.id)}}" style="padding-top:10px;padding-bottom:6px">
-                    <img
-                            src="{{current_user.getAvatar(size=32)}}" class="img-circle profile-thumbnail"/></a></li>
-                <li><a href="{{url_for('auth.logout')}}">Logout</a></li>
+                <li><a href="{{url_for('main.user',id=current_user.id)}}"
+                       style="padding-top:10px;padding-bottom:6px">
+                    <img src="{{current_user.getAvatar(size=32)}}" class="img-circle profile-thumbnail"/></a></li>
+                <li><a href="{{url_for('auth.logout',next=request.path) }}">Logout</a></li>
                 {% endif %}
             </ul>
+            {% endif %}
         </div>
     </div>
 </div>

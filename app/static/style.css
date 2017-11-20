@@ -8,7 +8,7 @@ ul.posts{
     padding:0px;
     font-family:Gibson,Helvetica Neue,HelveticaNeue,Helvetica,Arial,sans-serif;
 }
-ul.posts li , ul.follows li{
+ul.posts li , ul.follows li, ul.comments li{
     list-style-type:none;
     padding:15px;
     border-bottom:1px lightgray solid;

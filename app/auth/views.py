@@ -2,6 +2,7 @@ from flask import render_template, redirect, request, url_for, flash, current_ap
 from flask_login import login_user, logout_user, login_required, current_user
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadTimeSignature
 
+from app.main.views import redirect_url
 from . import auth
 from .forms import LoginForm, RegistrationForm, FindPasswordForm, ResetPasswordForm
 from .. import db
@@ -25,11 +26,11 @@ def login():
             elif not user.confirmed:
                 return redirect(url_for('.unconfirmed'))
             else:
-                return redirect(request.args.get('next') or url_for('main.home'))
+                return redirect(redirect_url())
         else:
             flash('invalid username or password')
     form.email.data = request.args.get('email') or form.email.data
-    return render_template('auth/login.html', form=form)
+    return render_template('auth/login.html', form=form, hide_login=True)
 
 
 @auth.route('/logout')
@@ -37,7 +38,7 @@ def login():
 def logout():
     logout_user()
     flash('You have been logged out')
-    return redirect(url_for('main.home'))
+    return redirect(redirect_url())
 
 
 @auth.route('/register', methods=['GET', 'POST'])

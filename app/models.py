@@ -128,6 +128,10 @@ class User(UserMixin, db.Model):
         return Post.query.join(Follow, Follow.followed_id == Post.author_id) \
             .filter(Follow.follower_id == self.id)
 
+    @property
+    def comments(self):
+        return self.posts.filter_by(post_type=PostType.COMMENT)
+
     def getAvatar(self, size=100, default='identicon', rating='g'):
         if request.is_secure:
             url = "https://secure.gravatar.com/avatar"
@@ -200,6 +204,11 @@ class User(UserMixin, db.Model):
         db.session.commit()
 
 
+class PostType:
+    POST = 0x01
+    COMMENT = 0x02
+
+
 class Post(db.Model):
     __tablename__ = 'posts'
     id = db.Column(db.Integer, primary_key=True)
@@ -207,6 +216,17 @@ class Post(db.Model):
     body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    post_type = db.Column(db.Integer, default=PostType.POST)
+    parent_post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+    disabled = db.Column(db.Boolean, default=True)
+
+    comments = db.relationship('Post', foreign_keys=[parent_post_id],
+                               backref=db.backref('parent_post',
+                                                  lazy='joined', remote_side=[id]),
+                               cascade='all,delete-orphan',
+                               lazy='dynamic'
+                               )
 
     @staticmethod
     def generate_fake(count=100):

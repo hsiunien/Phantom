@@ -11,7 +11,7 @@
         <div class="post-author"><a href="{{url_for('.user',id=post.author.id)}}">
             {{ post.author.username}}</a></div>
         <div class="post-body">
-            <span class="pull-right"><a href="{{url_for('.post',id=post.id)}}">More</a></span>
+            <span class="pull-right" style="margin-left:30px"><a href="{{url_for('.post',id=post.id)}}">{{post.comments.count()}}评论</a></span>
             {% if post.body_html %}
             {{ post.body_html| safe}}
             {% else %}

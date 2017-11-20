@@ -1,9 +1,9 @@
-from flask import render_template, request, make_response, flash, abort, url_for, redirect, current_app
+from flask import render_template, request, flash, abort, url_for, redirect, current_app
 from flask_login import login_required, current_user
 
 from app.decorator import admin_required, permission_required
-from app.main.forms import EditProfileForm, EditProfileAdminForm, PostForm
-from app.models import Permission, User, Role, Post, Follow
+from app.main.forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
+from app.models import Permission, User, Role, Post, Follow, PostType
 from . import main
 from .. import db
 
@@ -17,17 +17,31 @@ def home():
         db.session.commit()
         return redirect(url_for('.home'))
     page = request.args.get('page', 1, type=int)
-    pagination = Post.query.order_by(Post.timestamp.desc()) \
+    pagination = Post.query.filter_by(post_type=PostType.POST).order_by(Post.timestamp.desc()) \
         .paginate(page, per_page=current_app.config['POSTS_PER_PAGE'], error_out=False)
 
     posts = pagination.items
     return render_template("index.html", form=form, posts=posts, pagination=pagination)
 
 
-@main.route('/post/<int:id>')
+@main.route('/post/<int:id>', methods=["GET", "POST"])
 def post(id):
     post = Post.query.get_or_404(id)
-    return render_template('post.html', posts=[post])
+    page = request.args.get('page', 1, type=int)
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Post(post_type=PostType.COMMENT, body=form.body.data, parent_post=post,
+                       author=current_user._get_current_object())
+        db.session.add(comment)
+        db.session.commit()
+        return redirect(url_for('.post', id=post.id, page=-1))
+    if page == -1:
+        page = (post.comments.count() - 1) // 10 + 1
+
+    pagination = post.comments.order_by(Post.timestamp.asc()).paginate(page, per_page=10, error_out=False)
+    comments = pagination.items
+    return render_template('post.html', posts=[post], page=page,
+                           form=form, comments=comments, pagination=pagination)
 
 
 @main.route('/edit_post/<int:id>', methods=['GET', 'POST'])
@@ -61,13 +75,32 @@ def delete_post(id):
     return redirect(url_for('.home'))
 
 
+@main.route('/moderate/<int:id>')
+@permission_required(Permission.MODERATE_COMMENTS)
+def moderate(id):
+    disabled = request.args.get("disabled")
+    if disabled:
+        comment = Post.query.get_or_404(id)
+        if disabled in ('1', '0'):
+            comment.disabled = (disabled == '1')
+            db.session.add(comment)
+            db.session.commit()
+        elif disabled == '3':
+            db.session.delete(comment)
+            db.session.commit()
+    else:
+        abort(404)
+
+    return redirect(redirect_url())
+
+
 @main.route('/user/<id>')
 def user(id):
     user = User.query.filter_by(id=id).first()
     if user is None:
         abort(404)
     page = request.args.get('page', 1, type=int)
-    pagination = user.posts.order_by(Post.timestamp.desc()) \
+    pagination = user.posts.filter_by(post_type=PostType.POST).order_by(Post.timestamp.desc()) \
         .paginate(page, per_page=current_app.config['POSTS_PER_PAGE'], error_out=False)
     total = pagination.total
     posts = pagination.items
@@ -185,18 +218,7 @@ def followed(id):
                            follows=follows)
 
 
-@main.route('/user/<id>')
-def find_user(id):
-    user = load_user(id)
-    if not user:
-        abort(404)
-    return make_response("login success")
-
-
-@main.route('/secret')
-def secret():
-    return 'Only authenticated users are allowed'
-
-
-def load_user(id):
-    return None
+def redirect_url(endpoint='main.home'):
+    return request.args.get('next') or \
+           request.referrer or \
+           url_for(endpoint)
