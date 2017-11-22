@@ -1,2 +1,14 @@
 -r common.txt
 ForgeryPy==0.1
+
+certifi==2017.11.5
+chardet==3.0.4
+httpie==0.9.9
+idna==2.6
+Pygments==2.2.0
+requests==2.18.4
+urllib3==1.22
+
+coverage==4.4.2
+
+

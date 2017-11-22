@@ -49,9 +49,8 @@ def register():
                     password=form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('We sent you a confirm email,please confirm first!', 'success')
-        send_email(user.email, 'New User', 'mail/new_user', user=user)
-        login_user(user)
+        flash('注册邮件已经发往您的邮箱：%s ,请注意查看邮件，Tips：若长时间没有收到邮件，有可能在邮箱垃圾箱中' % user.email, 'success')
+        send_email(user.email, '注册成功', 'mail/new_user', user=user)
         return redirect(url_for('.login'))
     return render_template('auth/register.html', form=form)
 
@@ -70,7 +69,7 @@ def confirm(token, email):
         return redirect(url_for('main.home'))
     result, msg = current_user.confirm(token)
     if result:
-        flash('You have confirmed your account, Thanks', 'success')
+        flash('您已经成功激活了您的账号, 欢迎加入我们', 'success')
     else:
         flash(msg)
         logout_user()

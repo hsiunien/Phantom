@@ -2,12 +2,13 @@ import hashlib
 from datetime import datetime
 
 import bleach
-from flask import current_app, request
+from flask import current_app, request, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadTimeSignature
 from markdown import markdown
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from app.exceptions import ValidationError
 from . import db
 from . import login_manager
 
@@ -132,12 +133,16 @@ class User(UserMixin, db.Model):
     def comments(self):
         return self.posts.filter_by(post_type=PostType.COMMENT)
 
+    @staticmethod
+    def on_change_email(target, value, old_value, initiator):
+        target.avatar = hashlib.md5(value.encode('utf-8')).hexdigest()
+
     def getAvatar(self, size=100, default='identicon', rating='g'):
         if request.is_secure:
             url = "https://secure.gravatar.com/avatar"
         else:
             url = 'http://www.gravatar.com/avatar'
-        hash = self.avatar or self.cemail
+        hash = self.avatar or hashlib.md5(self.email.encode('utf-8')).hexdigest()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, default=default, rating=rating, size=size)
 
@@ -147,25 +152,6 @@ class User(UserMixin, db.Model):
 
     def is_administrator(self):
         return self.can(Permission.ADMINISTER)
-
-    @property
-    def cemail(self):
-        """
-        返回同email
-        @return:
-        @rtype:
-        """
-        return self.email
-
-    @cemail.setter
-    def cemail(self, email):
-        """
-        修改email调用此方法可以同步修改email的hash
-        @param email:  要修改的email
-        @type email:
-        """
-        self.email = email
-        self.avatar = hashlib.md5(self.email.encode('utf-8')).hexdigest()
 
     @property
     def password(self):
@@ -181,6 +167,25 @@ class User(UserMixin, db.Model):
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({'confirm': self.id})
+
+    def generate_auth_token(self, uuid=None, expiration=3600 * 24):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        rs = s.dumps({'id': self.id, "uuid": uuid})
+        if isinstance(rs, bytes):
+            rs = rs.decode('utf-8')
+        return rs
+
+    @staticmethod
+    def verify_auth_token(token, uuid):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+            if data.get('uuid') != uuid:
+                raise ValueError("uuid exception")
+        except Exception as e:
+            print(e)
+            return None
+        return User.query.get(data['id'])
 
     def confirm(self, token):
         s = Serializer(current_app.config['SECRET_KEY'])
@@ -202,6 +207,17 @@ class User(UserMixin, db.Model):
         self.last_seen = datetime.utcnow()
         db.session.add(self)
         db.session.commit()
+
+    def to_json(self):
+        json_post = {'url': url_for('api.get_user', id=self.id, _external=True),
+                     'username': self.username,
+                     'member_since': self.member_since,
+                     'last_seen': self.last_seen,
+                     'posts': url_for('api.get_user_posts', id=self.id, _external=True),
+                     'followed_posts': url_for('api.get_user_follows_posts', id=self.id, _external=True),
+                     'posts_count': self.posts.count()
+                     }
+        return json_post
 
 
 class PostType:
@@ -243,12 +259,49 @@ class Post(db.Model):
 
     @staticmethod
     def on_change_body(target, value, old_value, initiator):
-        allowed_tags = ['a', 'abbr', 'b', 'code', 'i', 'li', 'ul', 'h2', 'h1', 'h3', 'p', 'strong', 'pre']
+        allowed_tags = ['a', 'b', 'code',
+                        'i', 'li', 'ol', 'pre', 'strong',
+                        'h1', 'h2', 'h3', 'p', 'img', 'br', 'span', 'hr', ]
+        allowed_attrs = {'img': ['alt', 'src'], '*': ['class'], 'a': ['href', 'rel']}
         target.body_html = bleach.clean(markdown(value, output_format='html'),
-                                        tags=allowed_tags, strip=True)
+                                        tags=allowed_tags, attributes=allowed_attrs, strip=True)
+
+    def to_json(self):
+        if self.post_type == PostType.POST:
+            json_post = {'url': url_for('api.get_post', id=self.id, _external=True),
+                         'body': self.body,
+                         'body_html': self.body_html,
+                         'timestamp': str(self.timestamp),
+                         'author': url_for('api.get_user', id=self.author_id, _external=True),
+                         'comments': url_for('api.get_post_comments', id=self.id, _external=True),
+                         'comments_count': self.comments.count()
+                         }
+        else:
+            json_post = {'url': url_for('api.get_post_comment', parent_id=self.parent_post_id,
+                                        id=self.id, _external=True),
+                         'body': self.body,
+                         'body_html': self.body_html,
+                         'timestamp': str(self.timestamp),
+                         'parent_post': url_for('api.get_post', id=self.parent_post_id, _external=True) \
+                             if self.parent_post.post_type == PostType.POST else \
+                             url_for('api.get_post_comment', parent_id=self.parent_post_id, id=self.id),
+                         'author': url_for('api.get_user', id=self.author_id, _external=True),
+                         'comments': url_for('api.get_post_comments', id=self.id, _external=True),
+                         'comments_count': self.comments.count()
+                         }
+
+        return json_post
+
+    @staticmethod
+    def from_json(json_post, is_comment=False):
+        body = json_post.get('body')
+        if not body:
+            raise ValidationError('post dosen\'s have body')
+        return Post(body=body, post_type=PostType.COMMENT if is_comment else PostType.POST)
 
 
 db.event.listen(Post.body, 'set', Post.on_change_body)
+db.event.listen(User.email, 'set', User.on_change_email)
 
 
 class AnonymousUser(AnonymousUserMixin):

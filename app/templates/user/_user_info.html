@@ -13,7 +13,7 @@
     {% if user.about_me %}
     <p>About Me:{{user.about_me}}</p>
     {% endif %}
-    <p>TA在{{moment(user.member_since).format('L')}}来到这儿<br/>最后一次登录时间：{{moment(user.last_seen).fromNow()
+    <p>TA在{{moment(user.member_since).format('LLL')}}来到这儿<br/>最后一次登录时间：{{moment(user.last_seen).fromNow()
         }}. </p>
     <p class="followers_info">
 

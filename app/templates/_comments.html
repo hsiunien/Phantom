@@ -24,6 +24,10 @@
                 <a class="btn btn-warning"
                    href="{{url_for('.moderate',id=post.id,disabled=1)}}">屏蔽</a></span>
             {% endif %}
+            {% elif current_user== post.author%}
+            <span class="pull-right" style="margin-left:20px">
+               哦哦，被系统吃掉了，等待管理员拯救
+           </span>
             {% endif %}
             {% if post.body_html %}
             {{ post.body_html| safe}}

@@ -31,7 +31,9 @@ def post(id):
     form = CommentForm()
     if form.validate_on_submit():
         comment = Post(post_type=PostType.COMMENT, body=form.body.data, parent_post=post,
-                       author=current_user._get_current_object())
+                       author=current_user._get_current_object(),
+                       disabled=not current_user.can(Permission.MODERATE_COMMENTS))
+
         db.session.add(comment)
         db.session.commit()
         return redirect(url_for('.post', id=post.id, page=-1))
@@ -135,7 +137,7 @@ def edit_profile_admin(id):
     edit_success = False
     if form.validate_on_submit():
         user.confirmed = form.confirmed.data
-        user.cemail = form.email.data
+        user.email = form.email.data
         user.role = Role.query.get(form.role.data)
         user.username = form.username.data
         user.location = form.location.data
@@ -148,7 +150,7 @@ def edit_profile_admin(id):
     form.location.data = user.location
     form.about_me.data = user.about_me
     form.role.data = user.role_id
-    form.email.data = user.cemail
+    form.email.data = user.email
     form.confirmed.data = user.confirmed
     return render_template('user/edit_profile.html', form=form, edit_success=edit_success, user=user)
 
