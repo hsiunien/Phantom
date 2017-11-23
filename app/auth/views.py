@@ -96,7 +96,6 @@ def unconfirmed():
 @auth.before_request
 def befor_request():
     # print(request.endpoint)
-
     if current_user.is_authenticated:
         current_user.ping()
         if not current_user.confirmed \
@@ -166,7 +165,6 @@ def decode_reset_key(reset_key):
     s = Serializer(current_app.config['SECRET_KEY'])
     try:
         data = s.loads(reset_key)
-
         return True, data
     except BadTimeSignature:
         return False, 'token已经失效，清重新认证'

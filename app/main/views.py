@@ -1,5 +1,6 @@
 from flask import render_template, request, flash, abort, url_for, redirect, current_app
 from flask_login import login_required, current_user
+from flask_sqlalchemy import get_debug_queries
 
 from app.decorator import admin_required, permission_required
 from app.main.forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
@@ -218,6 +219,16 @@ def followed(id):
     follows = [{'user': item.followed, 'timestamp': item.timestamp} for item in pagination.items]  # 蜜汁写法
     return render_template('user/followers.html', user=user, title="关注", endpoint='.followers', pagination=pagination,
                            follows=follows)
+
+
+@main.after_app_request
+def afeter_request(response):
+    for query in get_debug_queries():
+        if query.duration >= current_app.config['QUERY_DB_TIME_OUT']:
+            current_app.logger.warning('Slow query:%s\n parameters:%s Duration:%fs\n Context:%s\n' %
+                                       (query.statement, query.parameters, query.duration, query.context)
+                                       )
+    return response
 
 
 def redirect_url(endpoint='main.home'):

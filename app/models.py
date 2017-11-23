@@ -124,6 +124,15 @@ class User(UserMixin, db.Model):
             except IntegrityError:
                 db.session.rollback()
 
+    @staticmethod
+    def follow_them_self():
+        users = User.query.all()
+        for user in users:
+            if not user.is_following(user):
+                f = Follow(follower=user, followed=user)
+                db.session.add(f)
+        db.session.commit()
+
     @property
     def followed_posts(self):
         return Post.query.join(Follow, Follow.followed_id == Post.author_id) \
