@@ -6,6 +6,11 @@ All code are rewritten by me.
 
 
 ### Run Server
+In the root folder, add a env file named <code>.env</code>
+this is the sample:
+
+``` shell
+CURRENT_ENV = <development|production|unixconfig|testing|default>
 
 ADMIN=<Admin Email>
 
@@ -19,4 +24,4 @@ MAIL_SUBJECT_PREFIX = <prefix for each email>
 
 DB_USER=<database username>
 DB_PWD=<if use mysql. it is the password for connect to the database>
-CURRENT_ENV = <development|production|unixconfig|testing|default>
+```
