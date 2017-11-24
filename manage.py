@@ -6,6 +6,7 @@ from flask_script import Manager, Shell
 from app import create_app, db
 from app.models import User, Role, Post
 
+
 COV = None
 if os.environ.get("COVERAGE"):
     import coverage
@@ -13,7 +14,7 @@ if os.environ.get("COVERAGE"):
     COV = coverage.coverage(branch=True, include='app/*')
     COV.start()
 
-app = create_app('default')
+app = create_app()
 DATABASE_URI = app.config['SQLALCHEMY_DATABASE_URI']
 # in order to resolve the issue:alembic no support for alter of constraints in sqlite dialect
 is_sqlite = DATABASE_URI.startswith('sqlite:')

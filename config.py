@@ -4,9 +4,18 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
-    APP_NAME = 'Zheer.me'
+    if os.path.exists('.env'):
+        print('set up environment from .env')
+        with open('.env') as f:
+            for line in f.readlines():
+                var = line.strip().split("=")
+                if len(var) == 2:
+                    print('set local env:%s=%s' % (var[0].strip(), var[1].strip()))
+                    os.environ[var[0].strip()] = var[1].strip()
+
+    APP_NAME = os.environ.get('APP_NAME') or 'Zheer.me'
     SECRET_KEY = os.environ.get('SECRET_KEY')
-    MAIL_SUBJECT_PREFIX = '[这儿]'
+    MAIL_SUBJECT_PREFIX = os.environ.get('MAIL_SUBJECT_PREFIX') or '[这儿]'
     MAIL_SENDER = '{app_name} <{mail_username}>' \
         .format(app_name=APP_NAME,
                 mail_username=os.environ.get('MAIL_USERNAME'))
@@ -16,7 +25,7 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = True
 
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
-    MAIL_PORT = 80
+    MAIL_PORT = os.environ.get('MAIL_PORT') or 25
     MAIL_USE_TLS = False
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
@@ -36,7 +45,8 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(base_dir, 'data-test.sqlite')
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://' + os.environ.get('DB_USER') + ':' + os.environ.get(
+        'DB_PWD') + '@localhost/zheer_dev'
 
 
 class ProductionConfig(Config):

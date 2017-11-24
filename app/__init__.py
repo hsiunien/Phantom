@@ -7,6 +7,7 @@ from flask_pagedown import PageDown
 from flask_sqlalchemy import SQLAlchemy
 
 from config import config
+import os
 
 bootstrap = Bootstrap()
 mail = Mail()
@@ -18,8 +19,9 @@ login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
 
 
-def create_app(config_name):
+def create_app():
     app = Flask(__name__)
+    config_name = os.environ.get('CURRENT_ENV', 'default')
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
@@ -38,6 +40,5 @@ def create_app(config_name):
 
     from .api_1_0 import api as api_blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api/1.0')
-
 
     return app
