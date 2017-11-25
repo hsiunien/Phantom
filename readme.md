@@ -2,6 +2,12 @@
 
 This project is build when I study with the book-&lt;Flask web development:Developing Web applications with Python&gt;
 
+Build on Python3
+
+Database is Mariadb
+
+Powered by Flask
+
 All code are rewritten by me.
 
 
@@ -24,4 +30,14 @@ MAIL_SUBJECT_PREFIX = <prefix for each email>
 
 DB_USER=<database username>
 DB_PWD=<if use mysql. it is the password for connect to the database>
+```
+
+run:
+```
+pip install -r requirements/dev.txt
+python manange.py shell
+>> db.create_all()
+>>exit()
+:python manage.py deploy
+:python manage.py runserver
 ```

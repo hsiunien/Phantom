@@ -10,7 +10,7 @@ class Config:
             for line in f.readlines():
                 var = line.strip().split("=")
                 if len(var) == 2:
-                    print('set local env:%s=%s' % (var[0].strip(), var[1].strip()))
+                    # print('set local env:%s=%s' % (var[0].strip(), var[1].strip()))
                     os.environ[var[0].strip()] = var[1].strip()
 
     APP_NAME = os.environ.get('APP_NAME') or 'Zheer.me'
