@@ -217,7 +217,7 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def to_json(self):
+    def     to_json(self):
         json_post = {'url': url_for('api.get_user', id=self.id, _external=True),
                      'username': self.username,
                      'member_since': self.member_since,
